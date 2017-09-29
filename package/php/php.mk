@@ -4,23 +4,23 @@
 #
 ################################################################################
 
-PHP_VERSION = 7.1.7
+PHP_VERSION = 5.6.31
 PHP_SITE = http://www.php.net/distributions
 PHP_SOURCE = php-$(PHP_VERSION).tar.xz
 PHP_INSTALL_STAGING = YES
 PHP_INSTALL_STAGING_OPTS = INSTALL_ROOT=$(STAGING_DIR) install
 PHP_INSTALL_TARGET_OPTS = INSTALL_ROOT=$(TARGET_DIR) install
 PHP_DEPENDENCIES = host-pkgconf
-PHP_LICENSE = PHP-3.01
+PHP_LICENSE = PHP
 PHP_LICENSE_FILES = LICENSE
 PHP_CONF_OPTS = \
 	--mandir=/usr/share/man \
 	--infodir=/usr/share/info \
 	--disable-all \
-	--without-pear \
+	--with-pear \
 	--with-config-file-path=/etc \
-	--disable-phpdbg \
-	--disable-rpath
+	--disable-rpath \
+	--cache-file=cross_compile_config.cache
 PHP_CONF_ENV = \
 	ac_cv_func_strcasestr=yes \
 	EXTRA_LIBS="$(PHP_EXTRA_LIBS)"
@@ -33,10 +33,9 @@ ifeq ($(BR2_STATIC_LIBS)$(BR2_TOOLCHAIN_HAS_THREADS),yy)
 PHP_STATIC_LIBS += -lpthread
 endif
 
-ifeq ($(call qstrip,$(BR2_TARGET_LOCALTIME)),)
+ifeq ($(BR2_TARGET_LOCALTIME),)
 PHP_LOCALTIME = UTC
 else
-# Not q-stripping this value, as we need quotes in the php.ini file
 PHP_LOCALTIME = $(BR2_TARGET_LOCALTIME)
 endif
 
@@ -77,18 +76,13 @@ else
 PHP_CONF_ENV += ac_cv_func_dlopen=no ac_cv_lib_dl_dlopen=no
 endif
 
-PHP_CONF_OPTS += $(if $(BR2_PACKAGE_PHP_SAPI_CLI),--enable-cli,--disable-cli)
-PHP_CONF_OPTS += $(if $(BR2_PACKAGE_PHP_SAPI_CGI),--enable-cgi,--disable-cgi)
-PHP_CONF_OPTS += $(if $(BR2_PACKAGE_PHP_SAPI_FPM),--enable-fpm,--disable-fpm)
+PHP_CONF_OPTS += $(if $(BR2_PACKAGE_PHP_CLI),,--disable-cli)
+PHP_CONF_OPTS += $(if $(BR2_PACKAGE_PHP_CGI),,--disable-cgi)
+PHP_CONF_OPTS += $(if $(BR2_PACKAGE_PHP_FPM),--enable-fpm,--disable-fpm)
 
 ifeq ($(BR2_PACKAGE_PHP_SAPI_APACHE),y)
 PHP_DEPENDENCIES += apache
 PHP_CONF_OPTS += --with-apxs2=$(STAGING_DIR)/usr/bin/apxs
-
-# Enable thread safety option if Apache MPM is event or worker
-ifeq ($(BR2_PACKAGE_APACHE_MPM_EVENT)$(BR2_PACKAGE_APACHE_MPM_WORKER),y)
-PHP_CONF_OPTS += --enable-maintainer-zts
-endif
 endif
 
 ### Extensions
@@ -106,6 +100,8 @@ PHP_CONF_OPTS += \
 	$(if $(BR2_PACKAGE_PHP_EXT_EXIF),--enable-exif) \
 	$(if $(BR2_PACKAGE_PHP_EXT_FTP),--enable-ftp) \
 	$(if $(BR2_PACKAGE_PHP_EXT_JSON),--enable-json) \
+	$(if $(BR2_PACKAGE_PHP_EXT_IFCONFIG),--enable-ifconfig) \
+	$(if $(BR2_PACKAGE_PHP_EXT_JZ_LICENSE),--enable-jz_license) \
 	$(if $(BR2_PACKAGE_PHP_EXT_TOKENIZER),--enable-tokenizer) \
 	$(if $(BR2_PACKAGE_PHP_EXT_PCNTL),--enable-pcntl) \
 	$(if $(BR2_PACKAGE_PHP_EXT_SHMOP),--enable-shmop) \
@@ -128,10 +124,16 @@ endif
 
 ifeq ($(BR2_PACKAGE_PHP_EXT_OPENSSL),y)
 PHP_CONF_OPTS += --with-openssl=$(STAGING_DIR)/usr
+PHP_CONF_OPTS += --with-openssl-dir=$(STAGING_DIR)/usr
+PHP_CONF_OPTS += --with-imap-ssl=$(STAGING_DIR)/usr
 PHP_DEPENDENCIES += openssl
 # openssl needs zlib, but the configure script forgets to link against
 # it causing detection failures with static linking
 PHP_STATIC_LIBS += `$(PKG_CONFIG_HOST_BINARY) --libs openssl`
+endif
+
+ifeq ($(BR2_PACKAGE_PHP_EXT_JZ_LICENSE),y)
+PHP_CXXFLAGS += -DOS_LINUX
 endif
 
 ifeq ($(BR2_PACKAGE_PHP_EXT_LIBXML2),y)
@@ -190,9 +192,14 @@ PHP_CONF_OPTS += --with-readline=$(STAGING_DIR)/usr
 PHP_DEPENDENCIES += readline
 endif
 
-### Native SQL extensions
+### Native MySQL extensions
+ifeq ($(BR2_PACKAGE_PHP_EXT_MYSQL),y)
+PHP_CONF_OPTS += --with-mysql=$(STAGING_DIR)/usr
+PHP_DEPENDENCIES += mysql
+endif
 ifeq ($(BR2_PACKAGE_PHP_EXT_MYSQLI),y)
-PHP_CONF_OPTS += --with-mysqli
+PHP_CONF_OPTS += --with-mysqli=$(STAGING_DIR)/usr/bin/mysql_config
+PHP_DEPENDENCIES += mysql
 endif
 ifeq ($(BR2_PACKAGE_PHP_EXT_SQLITE),y)
 PHP_CONF_OPTS += --with-sqlite3=$(STAGING_DIR)/usr
@@ -209,7 +216,8 @@ PHP_DEPENDENCIES += sqlite
 PHP_CFLAGS += -DSQLITE_OMIT_LOAD_EXTENSION
 endif
 ifeq ($(BR2_PACKAGE_PHP_EXT_PDO_MYSQL),y)
-PHP_CONF_OPTS += --with-pdo-mysql
+PHP_CONF_OPTS += --with-pdo-mysql=$(STAGING_DIR)/usr
+PHP_DEPENDENCIES += mysql
 endif
 ifeq ($(BR2_PACKAGE_PHP_EXT_PDO_POSTGRESQL),y)
 PHP_CONF_OPTS += --with-pdo-pgsql=$(STAGING_DIR)/usr
@@ -219,11 +227,6 @@ ifeq ($(BR2_PACKAGE_PHP_EXT_PDO_UNIXODBC),y)
 PHP_CONF_OPTS += --with-pdo-odbc=unixODBC,$(STAGING_DIR)/usr
 PHP_DEPENDENCIES += unixodbc
 endif
-endif
-
-ifneq ($(BR2_PACKAGE_PHP_EXT_MYSQLI)$(BR2_PACKAGE_PHP_EXT_PDO_MYSQL),)
-# Set default MySQL unix socket to what the MySQL server is using by default
-PHP_CONF_OPTS += --with-mysql-sock=$(MYSQL_SOCKET)
 endif
 
 define PHP_DISABLE_PCRE_JIT
@@ -295,7 +298,7 @@ PHP_CONF_OPTS += \
 PHP_DEPENDENCIES += jpeg libpng freetype
 endif
 
-ifeq ($(BR2_PACKAGE_PHP_SAPI_FPM),y)
+ifeq ($(BR2_PACKAGE_PHP_FPM),y)
 define PHP_INSTALL_INIT_SYSV
 	$(INSTALL) -D -m 0755 $(@D)/sapi/fpm/init.d.php-fpm \
 		$(TARGET_DIR)/etc/init.d/S49php-fpm
@@ -344,5 +347,6 @@ endef
 PHP_POST_INSTALL_TARGET_HOOKS += PHP_INSTALL_FIXUP
 
 PHP_CONF_ENV += CFLAGS="$(PHP_CFLAGS)"
+PHP_CONF_ENV += CXXFLAGS="$(PHP_CXXFLAGS)"
 
 $(eval $(autotools-package))

@@ -1,0 +1,12 @@
+diff -Nur php-5.6.22-orig/pear/Makefile.frag php-5.6.22/pear/Makefile.frag
+--- php-5.6.22-orig/pear/Makefile.frag	2016-05-26 09:08:57.000000000 +0800
++++ php-5.6.22/pear/Makefile.frag	2016-11-24 13:23:56.650049206 +0800
+@@ -11,7 +11,7 @@
+ PEAR_SUFFIX = -ds a$(program_suffix)
+ 
+ install-pear-installer: $(SAPI_CLI_PATH)
+-	@$(top_builddir)/sapi/cli/php $(PEAR_INSTALL_FLAGS) pear/install-pear-nozlib.phar -d "$(peardir)" -b "$(bindir)" ${PEAR_PREFIX} ${PEAR_SUFFIX}
++	@php $(PEAR_INSTALL_FLAGS) pear/install-pear-nozlib.phar -d "$(peardir)" -b "$(bindir)" ${PEAR_PREFIX} ${PEAR_SUFFIX}
+ 
+ install-pear:
+ 	@echo "Installing PEAR environment:      $(INSTALL_ROOT)$(peardir)/"
