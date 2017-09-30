@@ -55,6 +55,22 @@ else
 OPENSSH_CONF_OPTS += --without-selinux
 endif
 
+define OPENSSH_INSTALL_UNSAFE_CONF
+	sed -i '/^#PermitRootLogin/a PermitRootLogin yes' $(TARGET_DIR)/etc/ssh/sshd_config
+	sed -i '/^#PasswordAuthentication/a PasswordAuthentication yes' $(TARGET_DIR)/etc/ssh/sshd_config
+endef
+
+define OPENSSH_INSTALL_SAFE_CONF
+	$(INSTALL) -D -m 755 package/openssh/sshd_safe_config \
+		(TARGET_DIR)/etc/ssh/sshd_config
+endef
+
+ifeq ($(BR2_PACKAGE_OPENSSH_UNSAFE_CONF),y)
+OPENSSH_POST_INSTALL_TARGET_HOOKS += OPENSSH_INSTALL_UNSAFE_CONF
+else
+OPENSSH_POST_INSTALL_TARGET_HOOKS += OPENSSH_INSTALL_SAFE_CONF
+endif
+
 define OPENSSH_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -m 644 package/openssh/sshd.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/sshd.service

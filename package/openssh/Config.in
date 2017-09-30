@@ -8,3 +8,11 @@ config BR2_PACKAGE_OPENSSH
 	  tools. The standard 'ssh', 'sshd', 'scp', and friends.
 
 	  http://www.openssh.com/
+
+if BR2_PACKAGE_OPENSSH
+
+config BR2_PACKAGE_OPENSSH_UNSAFE_CONF
+	bool "openssh server unsafe configure file"
+	help
+	  Use a sshd_config that can login in root with password.
+endif
