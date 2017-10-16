@@ -81,6 +81,18 @@ define RSYSLOG_INSTALL_INIT_SYSV
 		$(TARGET_DIR)/etc/init.d/S01logging
 endef
 
+define RSYSLOG_INSTALL_CONF_MYSQL
+		$(INSTALL) -m 0644 -D package/rsyslog/mysql.conf \
+			$(TARGET_DIR)/etc/rsyslog.d/mysql.conf
+		mkdir -p $(TARGET_DIR)/etc/mysql
+		$(INSTALL) -m 0644 -D $(@D)/plugins/ommysql/createDB.sql \
+			$(TARGET_DIR)/etc/mysql/
+endef
+
+ifeq ($(BR2_PACKAGE_MYSQL),y)
+	RSYSLOG_POST_INSTALL_TARGET_HOOKS += RSYSLOG_INSTALL_CONF_MYSQL
+endif
+
 # The rsyslog.service is installed by rsyslog, but the link is not created
 # so the service is not enabled.
 # We need to create another link which is due to the fact that the

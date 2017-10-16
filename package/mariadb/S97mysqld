@@ -3,10 +3,13 @@
 # mysql
 #
 
-MYSQL_LIB="/var/lib/mysql"
+MYSQL_LIB="/var/log/mysql"
 MYSQL_RUN="/run/mysql"
 MYSQL_PID="$MYSQL_RUN/mysqld.pid"
 MYSQL_BIN="/usr/bin"
+SYSLOG_USER="syslog"
+SYSLOG_PASSWD="*23AE809DDACAF96AF0FD78ED04B6A265E05AA257"
+PASSWORD="*4462AAE75176999C13A52A29423C6B73E4B55B14"
 
 wait_for_ready() {
 	WAIT_DELAY=5
@@ -29,20 +32,46 @@ start() {
 			echo "FAIL"
 			exit 1
 		fi
-		echo "OK"
+		# mysqld runs as user mysql, but /run is only writable by root
+		# so create a subdirectory for mysql.
+		install -d -o mysql -g root -m 0755 $MYSQL_RUN
+
+		# We don't use start-stop-daemon because mysqld has its own
+		# wrapper script.
+		printf "Starting mysql ... "
+		$MYSQL_BIN/mysqld_safe --pid-file=$MYSQL_PID --user=mysql \
+			--datadir=$MYSQL_LIB > /dev/null 2>&1 &
+		wait_for_ready
+		if [ $? != 0 ];then
+			echo "FAIL"
+			exit 1
+		fi
+		echo "Init database for rsyslog !"
+		# Create the user "$SYSLOG_USER" and Set password for it .
+		mysql -u root -e "create user '${SYSLOG_USER}'@'localhost' identified by password '${SYSLOG_PASSWD}';"
+		##### Create a database for rsyslog
+		mysql -u root -e "source /etc/mysql/createDB.sql;"
+		# Grant all privileges of Syslog to mysql.
+		mysql -u root -e "grant all on Syslog.* to '${SYSLOG_USER}'@'localhost';flush privileges;"
+		##### Restart the rsyslog
+		/etc/init.d/S01logging restart
+		echo "MySQL started successfully, the next will be improve the security of the MySQL installation !"
+		/usr/sbin/improve_mysql_security.exp
+		##### reset password for root.
+		mysql -u root -proot -e "drop user 'root'@'127.0.0.1';drop user 'root'@'::1';grant all on *.* to 'root'@'localhost' identified by password '${PASSWORD}' with grant option;"
+	else
+		# mysqld runs as user mysql, but /run is only writable by root
+		# so create a subdirectory for mysql.
+		install -d -o mysql -g root -m 0755 $MYSQL_RUN
+
+		# We don't use start-stop-daemon because mysqld has its own
+		# wrapper script.
+		printf "Starting mysql ... "
+		$MYSQL_BIN/mysqld_safe --pid-file=$MYSQL_PID --user=mysql \
+			--datadir=$MYSQL_LIB > /dev/null 2>&1 &
+		wait_for_ready
+		[ $? = 0 ] && echo "OK" || echo "FAIL"
 	fi
-
-	# mysqld runs as user mysql, but /run is only writable by root
-	# so create a subdirectory for mysql.
-	install -d -o mysql -g root -m 0755 $MYSQL_RUN
-
-	# We don't use start-stop-daemon because mysqld has its own
-	# wrapper script.
-	printf "Starting mysql ... "
-	$MYSQL_BIN/mysqld_safe --pid-file=$MYSQL_PID --user=mysql \
-		> /dev/null 2>&1 &
-	wait_for_ready
-	[ $? = 0 ] && echo "OK" || echo "FAIL"
 }
 
 stop() {
