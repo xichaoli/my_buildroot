@@ -86,4 +86,13 @@ define APACHE_CLEANUP_TARGET
 endef
 APACHE_POST_INSTALL_TARGET_HOOKS += APACHE_CLEANUP_TARGET
 
+define APACHE_INSTALL_CONFIG
+	$(INSTALL) -m 0644 -D package/apache/httpd.conf $(TARGET_DIR)/etc/apache2/httpd.conf
+	$(INSTALL) -m 0644 -D package/apache/httpd-ssl.conf $(TARGET_DIR)/etc/apache2/extra/httpd-ssl.conf
+	$(INSTALL) -m 0644 -D package/apache/server.key $(TARGET_DIR)/etc/apache2/server.key
+	$(INSTALL) -m 0644 -D package/apache/server.crt $(TARGET_DIR)/etc/apache2/server.crt
+	$(INSTALL) -m 0755 -D package/apache/S96apache $(TARGET_DIR)/etc/init.d/
+endef
+APACHE_POST_INSTALL_TARGET_HOOKS += APACHE_INSTALL_CONFIG
+
 $(eval $(autotools-package))
