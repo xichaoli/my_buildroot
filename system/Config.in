@@ -50,6 +50,26 @@ config BR2_TARGET_GENERIC_ISSUE
 
 endif
 
+config BR2_TARGET_GENERIC_COMPANY
+	string
+	prompt "Name of company"
+	default "3jnet"
+
+config BR2_TARGET_GENERIC_PRODUCT
+	string
+	prompt "Name of product"
+	default "Firewall"
+
+config BR2_TARGET_GENERIC_RELEASE
+	string
+	prompt "Release of product (debug or release)"
+	default "debug"
+
+config BR2_TARGET_GENERIC_MAIN_VERSION
+	string
+	prompt "Main version of product"
+	default "3.4"
+
 choice
 	bool "Passwords encoding"
 	default BR2_TARGET_GENERIC_PASSWD_MD5
