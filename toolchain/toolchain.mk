@@ -13,6 +13,19 @@ endef
 TOOLCHAIN_TARGET_FINALIZE_HOOKS += GLIBC_COPY_NSSWITCH_FILE
 endif
 
+# Install the elf programs to target,such as ldd,ldconfig
+ELF_PROGRAMS = $(call qstrip,$(BR2_TOOLCHAIN_GLIBC_ELF_LIST))
+define COPY_ELF_PROGRAMS
+	if [ -n "$(ELF_PROGRAMS)" ]; then \
+		for l in $(ELF_PROGRAMS); do \
+			$(INSTALL) -m 0755 -D $(STAGING_DIR)/$${l} \
+				$(TARGET_DIR)/$${l} \
+			|| exit 1; \
+		done; \
+	fi
+endef
+TARGET_FINALIZE_HOOKS += COPY_ELF_PROGRAMS
+
 # Install the gconv modules
 ifeq ($(BR2_TOOLCHAIN_GLIBC_GCONV_LIBS_COPY),y)
 GCONV_LIBS = $(call qstrip,$(BR2_TOOLCHAIN_GLIBC_GCONV_LIBS_LIST))

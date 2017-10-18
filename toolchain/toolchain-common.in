@@ -60,6 +60,14 @@ config BR2_TOOLCHAIN_HAS_SSP
 config BR2_TOOLCHAIN_SUPPORTS_PIE
 	bool
 
+config BR2_TOOLCHAIN_GLIBC_ELF_LIST
+	string "Which elf programs will be copied to target"
+	depends on BR2_TOOLCHAIN_BUILDROOT
+	depends on BR2_TOOLCHAIN_USES_GLIBC
+	help
+	  Set to the list of glibc elf to copy.
+	  Examples: usr/bin/ldd sbin/ldconfig
+
 config BR2_TOOLCHAIN_GLIBC_GCONV_LIBS_COPY
 	bool "Copy gconv libraries"
 	depends on BR2_TOOLCHAIN_USES_GLIBC
