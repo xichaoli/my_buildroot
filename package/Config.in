@@ -1822,6 +1822,8 @@ endmenu
 menu 'Vulnerability scanner'
 	source "package/openvas-libraries/Config.in"
 	source "package/openvas-scanner/Config.in"
+	source "package/openvas-manager/Config.in"
+	source "package/openvas-cli/Config.in"
 endmenu
 
 endmenu
