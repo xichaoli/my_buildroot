@@ -92,7 +92,7 @@ endef
 
 define MARIADB_INSTALL_INIT_SYSV
 	$(INSTALL) -D -m 0755 package/mariadb/S97mysqld \
-		$(TARGET_DIR)/etc/init.d/S97mysqld
+		$(TARGET_DIR)/etc/init.d/S30mysqld
 	$(INSTALL) -D -m 0755 package/mariadb/improve_mysql_security.exp \
 		$(TARGET_DIR)/usr/sbin/improve_mysql_security.exp
 endef
