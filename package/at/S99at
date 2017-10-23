@@ -6,6 +6,7 @@
 umask 077
 
 start() {
+	mkdir -p /var/spool/cron/{atjobs,atspool}
 	printf "Starting atd: "
 	start-stop-daemon --start --quiet --make-pidfile --pidfile /var/run/atd.pid --background --exec /usr/sbin/atd -- -f
 	echo "OK"
