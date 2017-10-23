@@ -62,7 +62,7 @@ endef
 
 define OPENSSH_INSTALL_SAFE_CONF
 	$(INSTALL) -D -m 755 package/openssh/sshd_safe_config \
-		(TARGET_DIR)/etc/ssh/sshd_config
+		$(TARGET_DIR)/etc/ssh/sshd_config
 endef
 
 ifeq ($(BR2_PACKAGE_OPENSSH_UNSAFE_CONF),y)
