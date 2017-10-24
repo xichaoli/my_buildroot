@@ -82,10 +82,10 @@ define RSYSLOG_INSTALL_INIT_SYSV
 endef
 
 define RSYSLOG_INSTALL_CONF_MYSQL
-		$(INSTALL) -m 0644 -D package/rsyslog/mysql.conf \
+		$(INSTALL) -m 0600 -D package/rsyslog/mysql.conf \
 			$(TARGET_DIR)/etc/rsyslog.d/mysql.conf
 		mkdir -p $(TARGET_DIR)/etc/mysql
-		$(INSTALL) -m 0644 -D $(@D)/plugins/ommysql/createDB.sql \
+		$(INSTALL) -m 0600 -D $(@D)/plugins/ommysql/createDB.sql \
 			$(TARGET_DIR)/etc/mysql/
 endef
 
