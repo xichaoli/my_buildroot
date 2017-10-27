@@ -71,6 +71,12 @@ else
 OPENSSH_POST_INSTALL_TARGET_HOOKS += OPENSSH_INSTALL_SAFE_CONF
 endif
 
+define OPENSSH_INSTALL_COPY_ID
+	$(INSTALL) -D -m 755 $(@D)/contrib/ssh-copy-id $(TARGET_DIR)/usr/bin/ssh-copy-id
+endef
+
+OPENSSH_POST_INSTALL_TARGET_HOOKS += OPENSSH_INSTALL_COPY_ID
+
 define OPENSSH_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -m 644 package/openssh/sshd.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/sshd.service
