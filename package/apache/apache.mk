@@ -75,6 +75,11 @@ else
 APACHE_CONF_OPTS += --disable-deflate
 endif
 
+ifeq ($(BR2_PACKAGE_OPENLDAP),y)
+APACHE_DEPENDENCIES += openldap
+APACHE_CONF_OPTS += --enable-authnz-ldap --enable-ldap
+endif
+
 define APACHE_FIX_STAGING_APACHE_CONFIG
 	$(SED) 's%/usr/build%$(STAGING_DIR)/usr/build%' $(STAGING_DIR)/usr/bin/apxs
 	$(SED) 's%^prefix =.*%prefix = $(STAGING_DIR)/usr%' $(STAGING_DIR)/usr/build/config_vars.mk
