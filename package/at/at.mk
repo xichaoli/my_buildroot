@@ -18,7 +18,8 @@ AT_CONF_OPTS = \
 	--with-jobdir=/var/spool/cron/atjobs \
 	--with-atspool=/var/spool/cron/atspool \
 	--with-daemon_username=root \
-	--with-daemon_groupname=root
+	--with-daemon_groupname=root \
+	SENDMAIL=/usr/sbin/sendmail
 
 # Install default pam config 
 define AT_INSTALL_CONFIG
