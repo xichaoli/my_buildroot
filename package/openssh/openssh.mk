@@ -4,16 +4,14 @@
 #
 ################################################################################
 
-OPENSSH_VERSION = 7.5p1
+OPENSSH_VERSION = 7.6p1
 OPENSSH_SITE = http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable
 OPENSSH_LICENSE = BSD-3c, BSD-2c, Public Domain
 OPENSSH_LICENSE_FILES = LICENCE
 # Autoreconf needed due to the following patches modifying configure.ac:
-# f4fcd8c788a4854d4ebae400cf55e3957f906835.patch
-# afc3e31b637db9dae106d4fad78f7b481c8c24e3.patch
+# 0001-configure-ac-detect-mips-abi.patch
+# 0002-configure-ac-properly-set-seccomp-audit-arch-for-mips64.patch
 OPENSSH_AUTORECONF = YES
-OPENSSH_PATCH = https://github.com/openssh/openssh-portable/commit/f4fcd8c788a4854d4ebae400cf55e3957f906835.patch \
-	https://github.com/openssh/openssh-portable/commit/afc3e31b637db9dae106d4fad78f7b481c8c24e3.patch
 OPENSSH_CONF_ENV = LD="$(TARGET_CC)" LDFLAGS="$(TARGET_CFLAGS)"
 OPENSSH_CONF_OPTS = \
 	--sysconfdir=/etc/ssh \
@@ -62,7 +60,7 @@ endef
 
 define OPENSSH_INSTALL_SAFE_CONF
 	$(INSTALL) -D -m 755 package/openssh/sshd_safe_config \
-		(TARGET_DIR)/etc/ssh/sshd_config
+		$(TARGET_DIR)/etc/ssh/sshd_config
 endef
 
 ifeq ($(BR2_PACKAGE_OPENSSH_UNSAFE_CONF),y)
@@ -70,6 +68,12 @@ OPENSSH_POST_INSTALL_TARGET_HOOKS += OPENSSH_INSTALL_UNSAFE_CONF
 else
 OPENSSH_POST_INSTALL_TARGET_HOOKS += OPENSSH_INSTALL_SAFE_CONF
 endif
+
+define OPENSSH_INSTALL_COPY_ID
+	$(INSTALL) -D -m 755 $(@D)/contrib/ssh-copy-id $(TARGET_DIR)/usr/bin/ssh-copy-id
+endef
+
+OPENSSH_POST_INSTALL_TARGET_HOOKS += OPENSSH_INSTALL_COPY_ID
 
 define OPENSSH_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -m 644 package/openssh/sshd.service \

@@ -62,4 +62,9 @@ else
 APR_UTIL_CONF_OPTS += --without-odbc
 endif
 
+ifeq ($(BR2_PACKAGE_OPENLDAP),y)
+APR_UTIL_CONF_OPTS += --with-ldap-include="$(STAGING_DIR)/usr/include/" --with-ldap-lib="$(STAGING_DIR)/usr/lib/" --with-ldap=ldap
+APR_UTIL_DEPENDENCIES += openldap
+endif
+
 $(eval $(autotools-package))

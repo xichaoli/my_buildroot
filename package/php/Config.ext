@@ -266,6 +266,11 @@ config BR2_PACKAGE_PHP_EXT_JSON
 	help
 	  JavaScript Object Serialization support
 
+config BR2_PACKAGE_PHP_EXT_LDAP
+	bool "LDAP"
+	help
+	  Include LDAP support
+
 config BR2_PACKAGE_PHP_EXT_TOKENIZER
 	bool "Tokenizer"
 	help
